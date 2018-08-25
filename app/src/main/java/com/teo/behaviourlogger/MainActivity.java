@@ -77,32 +77,34 @@ public class MainActivity extends AppCompatActivity {
         */
 
         final Handler handler = new Handler();
-        final int delay = 5000; //milliseconds
+        final int delay = 2000; //milliseconds
 
         Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
 
         handler.postDelayed(new Runnable(){
             public void run(){
-                //Log.i("HERE", "here I am!");
-//                ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-//                List<ActivityManager.RunningAppProcessInfo> runningApps = manager.getRunningAppProcesses();
-//                for (ActivityManager.RunningAppProcessInfo appInfo : runningApps)
-//                    Log.i("RUN", appInfo.processName);
                 String topPackageName ;
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    UsageStatsManager mUsageStatsManager = (UsageStatsManager) getCtx().getSystemService(Context.USAGE_STATS_SERVICE);
-                    long time = System.currentTimeMillis();
-                    // We get usage stats for the last 10 seconds
-                    List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000*10, time);
-                    // Sort the stats by the last time used
-                    if(stats != null) {
-                        SortedMap<Long,UsageStats> mySortedMap = new TreeMap<Long,UsageStats>();
-                        for (UsageStats usageStats : stats) {
-                            mySortedMap.put(usageStats.getLastTimeUsed(),usageStats);
-                        }
-                        if(!mySortedMap.isEmpty()) {
-                            topPackageName =  mySortedMap.get(mySortedMap.lastKey()).getPackageName();
-                            Log.i("RUN", topPackageName);
+                KeyguardManager myKM = (KeyguardManager) getCtx().getSystemService(Context.KEYGUARD_SERVICE);
+                boolean isPhoneLocked = myKM.inKeyguardRestrictedInputMode();
+
+                if (isPhoneLocked)
+                    Log.i("LOCKED","I'm locked dude! Waiting for you to unlock me...");
+                else {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        UsageStatsManager mUsageStatsManager = (UsageStatsManager) getCtx().getSystemService(Context.USAGE_STATS_SERVICE);
+                        long time = System.currentTimeMillis();
+                        // We get usage stats for the last 10 seconds
+                        List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000 * 10, time);
+                        // Sort the stats by the last time used
+                        if (stats != null) {
+                            SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+                            for (UsageStats usageStats : stats) {
+                                mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                            }
+                            if (!mySortedMap.isEmpty()) {
+                                topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                                Log.i("RUN", topPackageName);
+                            }
                         }
                     }
                 }
