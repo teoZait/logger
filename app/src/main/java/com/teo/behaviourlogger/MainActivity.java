@@ -3,6 +3,10 @@ package com.teo.behaviourlogger;
 import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.app.KeyguardManager;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Room;
@@ -34,6 +38,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -69,6 +75,41 @@ public class MainActivity extends AppCompatActivity {
         KeyguardManager myKM = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
         boolean isPhoneLocked = myKM.inKeyguardRestrictedInputMode();
         */
+
+        final Handler handler = new Handler();
+        final int delay = 5000; //milliseconds
+
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+
+        handler.postDelayed(new Runnable(){
+            public void run(){
+                //Log.i("HERE", "here I am!");
+//                ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+//                List<ActivityManager.RunningAppProcessInfo> runningApps = manager.getRunningAppProcesses();
+//                for (ActivityManager.RunningAppProcessInfo appInfo : runningApps)
+//                    Log.i("RUN", appInfo.processName);
+                String topPackageName ;
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    UsageStatsManager mUsageStatsManager = (UsageStatsManager) getCtx().getSystemService(Context.USAGE_STATS_SERVICE);
+                    long time = System.currentTimeMillis();
+                    // We get usage stats for the last 10 seconds
+                    List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000*10, time);
+                    // Sort the stats by the last time used
+                    if(stats != null) {
+                        SortedMap<Long,UsageStats> mySortedMap = new TreeMap<Long,UsageStats>();
+                        for (UsageStats usageStats : stats) {
+                            mySortedMap.put(usageStats.getLastTimeUsed(),usageStats);
+                        }
+                        if(!mySortedMap.isEmpty()) {
+                            topPackageName =  mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                            Log.i("RUN", topPackageName);
+                        }
+                    }
+                }
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
+
         mSensorService = new SensorService(getCtx());
         mServiceIntent = new Intent(getCtx(), mSensorService.getClass());
 

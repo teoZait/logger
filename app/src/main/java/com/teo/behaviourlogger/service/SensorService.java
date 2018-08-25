@@ -21,10 +21,11 @@ public class SensorService extends Service {
     private SensorRestarterBroadcastReceiver sensorRestarterBroadcastReceiver;
 
     public SensorService(Context applicationContext) {
-        super();
+        super.onCreate();
     }
 
     public SensorService() {
+
     }
 
     @Override
